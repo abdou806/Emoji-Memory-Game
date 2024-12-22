@@ -1,248 +1,287 @@
 <!DOCTYPE html>
-<html lang="ar">
+<html lang="ar" dir="rtl">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>إدارة المهام</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <title>نظام إدارة المهام والمواعيد</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css" rel="stylesheet">
     <style>
-        body {
-            font-family: Arial, sans-serif;
+        :root {
+            --primary: #4F46E5;
+            --primary-dark: #4338CA;
+            --secondary: #EC4899;
+            --success: #10B981;
+            --warning: #F59E0B;
+            --danger: #EF4444;
+            --gray-50: #F9FAFB;
+            --gray-100: #F3F4F6;
+            --gray-200: #E5E7EB;
+            --gray-300: #D1D5DB;
+            --gray-400: #9CA3AF;
+            --gradient: linear-gradient(135deg, var(--primary), var(--secondary));
+        }
+
+        * {
             margin: 0;
             padding: 0;
-            background-color: #f4f4f4;
+            box-sizing: border-box;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
         }
+
+        body {
+            background: var(--gray-50);
+            min-height: 100vh;
+            padding: 2rem;
+            display: flex;
+            justify-content: center;
+        }
+
         .container {
-            max-width: 800px;
-            margin: 20px auto;
-            padding: 20px;
-            background: #fff;
-            border-radius: 10px;
-            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            max-width: 1200px;
+            width: 100%;
         }
-        h1 {
-            text-align: center;
-            margin-bottom: 20px;
+
+        .dashboard {
+            display: grid;
+            grid-template-columns: 300px 1fr;
+            gap: 2rem;
+            position: relative;
         }
-        .task-form {
+
+        .sidebar {
+            background: white;
+            border-radius: 1rem;
+            padding: 1.5rem;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+            height: fit-content;
+            position: sticky;
+            top: 2rem;
+        }
+
+        .main-content {
             display: flex;
-            flex-wrap: wrap;
-            gap: 10px;
+            flex-direction: column;
+            gap: 2rem;
         }
-        .task-form input,
-        .task-form select,
-        .task-form button {
-            flex: 1;
-            padding: 10px;
-            margin: 5px 0;
-            font-size: 16px;
+
+        .card {
+            background: white;
+            border-radius: 1rem;
+            padding: 1.5rem;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+            transition: all 0.3s ease;
         }
-        .task-form button {
-            background-color: #28a745;
-            color: #fff;
+
+        .card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+        }
+
+        .header {
+            background: var(--gradient);
+            color: white;
+            padding: 2rem;
+            border-radius: 1rem;
+            margin-bottom: 2rem;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+        }
+
+        .stat-card {
+            background: white;
+            padding: 1.5rem;
+            border-radius: 0.75rem;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+            border: 1px solid var(--gray-200);
+            transition: transform 0.3s ease;
+        }
+
+        .stat-card:hover {
+            transform: scale(1.05);
+        }
+
+        .stat-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 4px;
+            background: var(--gradient);
+        }
+
+        .stat-value {
+            font-size: 2rem;
+            font-weight: 700;
+            color: var(--primary);
+            margin: 0.5rem 0;
+        }
+
+        .stat-label {
+            color: var(--gray-400);
+            font-size: 0.875rem;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .input-group {
+            position: relative;
+        }
+
+        .form-control {
+            width: 100%;
+            padding: 0.75rem;
+            border: 1px solid var(--gray-200);
+            border-radius: 0.5rem;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+        }
+
+        .form-control:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1);
+        }
+
+        .btn {
+            padding: 0.75rem 1.5rem;
             border: none;
+            border-radius: 0.5rem;
+            font-weight: 600;
             cursor: pointer;
-        }
-        .task-form button:hover {
-            background-color: #218838;
-        }
-        .task-list {
-            margin-top: 20px;
-        }
-        .task-item {
-            display: flex;
-            justify-content: space-between;
+            transition: all 0.3s ease;
+            display: inline-flex;
             align-items: center;
-            padding: 10px;
-            margin-bottom: 10px;
-            border: 1px solid #ccc;
-            border-radius: 5px;
-            background-color: #f9f9f9;
+            justify-content: center;
+            gap: 0.5rem;
         }
-        .task-item .task-details {
+
+        .btn-primary {
+            background: var(--gradient);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 6px -1px rgba(79, 70, 229, 0.2);
+        }
+
+        .task-list {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+
+        .task-item {
+            background: white;
+            border-radius: 0.75rem;
+            padding: 1rem;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            border: 1px solid var(--gray-200);
+            transition: all 0.3s ease;
+        }
+
+        .task-content {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
             flex: 1;
         }
-        .task-item .priority-badge {
-            padding: 5px 10px;
-            border-radius: 5px;
-            font-size: 14px;
-            color: #fff;
+
+        .task-details {
+            flex: 1;
         }
-        .priority-high {
-            background-color: #dc3545;
+
+        .task-title {
+            font-weight: 600;
+            color: var(--gray-900);
+            margin-bottom: 0.25rem;
         }
-        .priority-medium {
-            background-color: #ffc107;
-        }
-        .priority-low {
-            background-color: #28a745;
-        }
-        .stats {
+
+        .task-meta {
             display: flex;
-            justify-content: space-between;
-            margin-top: 20px;
+            align-items: center;
+            gap: 1rem;
+            color: var(--gray-400);
+            font-size: 0.875rem;
         }
-        .stats div {
-            text-align: center;
+
+        .priority-badge {
+            padding: 0.25rem 0.75rem;
+            border-radius: 1rem;
+            font-size: 0.75rem;
+            font-weight: 600;
         }
-        .stats div span {
-            display: block;
-            font-size: 20px;
-            font-weight: bold;
+
+        .priority-high {
+            background: #FEE2E2;
+            color: var(--danger);
+        }
+
+        .priority-medium {
+            background: #FEF3C7;
+            color: var(--warning);
+        }
+
+        .priority-low {
+            background: #D1FAE5;
+            color: var(--success);
         }
     </style>
 </head>
 <body>
     <div class="container">
-        <h1>إدارة المهام</h1>
-        <form id="taskForm" class="task-form">
-            <input type="text" id="taskInput" placeholder="عنوان المهمة" required>
-            <input type="text" id="taskDescription" placeholder="وصف المهمة">
-            <input type="date" id="startDate" placeholder="تاريخ البداية">
-            <input type="date" id="endDate" placeholder="تاريخ النهاية">
-            <select id="priority">
-                <option value="low">منخفضة</option>
-                <option value="medium">متوسطة</option>
-                <option value="high">عالية</option>
-            </select>
-            <button type="submit">إضافة مهمة</button>
-        </form>
-        <div id="taskList" class="task-list"></div>
-        <div class="stats">
-            <div>
-                <span id="totalTasks">0</span>
-                إجمالي المهام
-            </div>
-            <div>
-                <span id="completedTasks">0</span>
-                المهام المكتملة
-            </div>
-            <div>
-                <span id="pendingTasks">0</span>
-                المهام المعلقة
-            </div>
+        <header class="header animate__animated animate__fadeIn">
+            <h1>نظام إدارة المهام والمواعيد</h1>
+            <p>نظم مهامك وحقق أهدافك بكفاءة</p>
+        </header>
+
+        <div class="dashboard">
+            <aside class="sidebar animate__animated animate__slideInRight">
+                <form id="taskForm" class="form-group">
+                    <div class="input-group">
+                        <input type="text" class="form-control" id="taskInput" placeholder="عنوان المهمة" required>
+                    </div>
+                    <div class="input-group">
+                        <textarea class="form-control" id="taskDescription" placeholder="وصف المهمة" rows="3"></textarea>
+                    </div>
+                    <div class="input-group">
+                        <input type="datetime-local" class="form-control" id="startDate">
+                    </div>
+                    <div class="input-group">
+                        <input type="datetime-local" class="form-control" id="endDate">
+                    </div>
+                    <select class="form-control" id="priority">
+                        <option value="high">أولوية عالية</option>
+                        <option value="medium">أولوية متوسطة</option>
+                        <option value="low">أولوية منخفضة</option>
+                    </select>
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-plus"></i>
+                        إضافة مهمة
+                    </button>
+                </form>
+            </aside>
+
+            <main class="main-content">
+                <div class="task-list" id="taskList">
+                </div>
+            </main>
         </div>
     </div>
-
     <script>
-        class TaskManager {
-            constructor() {
-                this.tasks = [];
-                this.taskList = document.getElementById('taskList');
-                this.taskForm = document.getElementById('taskForm');
-                this.totalTasks = document.getElementById('totalTasks');
-                this.completedTasks = document.getElementById('completedTasks');
-                this.pendingTasks = document.getElementById('pendingTasks');
-                this.setupEventListeners();
-                this.loadTasks();
-                this.renderTasks();
-                this.updateStats();
-            }
-
-            setupEventListeners() {
-                this.taskForm.addEventListener('submit', (e) => {
-                    e.preventDefault();
-                    this.addTask();
-                });
-            }
-
-            addTask() {
-                const taskTitle = document.getElementById('taskInput').value.trim();
-                const taskDescription = document.getElementById('taskDescription').value.trim();
-                const startDate = document.getElementById('startDate').value;
-                const endDate = document.getElementById('endDate').value;
-                const priority = document.getElementById('priority').value;
-
-                if (!taskTitle) {
-                    alert('يرجى إدخال عنوان المهمة.');
-                    return;
-                }
-
-                const newTask = {
-                    id: Date.now(),
-                    title: taskTitle,
-                    description: taskDescription,
-                    startDate,
-                    endDate,
-                    priority,
-                    completed: false,
-                };
-
-                this.tasks.push(newTask);
-                this.saveTasks();
-                this.renderTasks();
-                this.updateStats();
-                this.taskForm.reset();
-            }
-
-            createTaskElement(task) {
-                const taskItem = document.createElement('div');
-                taskItem.className = 'task-item';
-                taskItem.dataset.taskId = task.id;
-
-                const priorityClass = {
-                    high: 'priority-high',
-                    medium: 'priority-medium',
-                    low: 'priority-low',
-                }[task.priority];
-
-                taskItem.innerHTML = `
-                    <div class="task-content">
-                        <div class="task-details">
-                            <h3 class="task-title">${task.title}</h3>
-                            <div class="task-meta">
-                                <span>${task.startDate ? `يبدأ: ${task.startDate}` : ''}</span>
-                                <span>${task.endDate ? `ينتهي: ${task.endDate}` : ''}</span>
-                            </div>
-                        </div>
-                        <div class="priority-badge ${priorityClass}">
-                            ${task.priority === 'high' ? 'عالية' : task.priority === 'medium' ? 'متوسطة' : 'منخفضة'}
-                        </div>
-                        <button class="btn btn-danger" onclick="taskManager.deleteTask(${task.id})">
-                            <i class="fas fa-trash"></i> حذف
-                        </button>
-                    </div>
-                `;
-
-                return taskItem;
-            }
-
-            renderTasks() {
-                this.taskList.innerHTML = '';
-                this.tasks.forEach(task => {
-                    const taskElement = this.createTaskElement(task);
-                    this.taskList.appendChild(taskElement);
-                });
-            }
-
-            deleteTask(taskId) {
-                this.tasks = this.tasks.filter(task => task.id !== taskId);
-                this.saveTasks();
-                this.renderTasks();
-                this.updateStats();
-            }
-
-            updateStats() {
-                const total = this.tasks.length;
-                const completed = this.tasks.filter(task => task.completed).length;
-                const pending = total - completed;
-
-                this.totalTasks.textContent = total;
-                this.completedTasks.textContent = completed;
-                this.pendingTasks.textContent = pending;
-            }
-
-            saveTasks() {
-                localStorage.setItem('tasks', JSON.stringify(this.tasks));
-            }
-
-            loadTasks() {
-                const savedTasks = JSON.parse(localStorage.getItem('tasks')) || [];
-                this.tasks = savedTasks;
-            }
-        }
-
-        const taskManager = new TaskManager();
-    </script>
-</body>
-</html>
+        const taskForm = document.getElementById('taskForm');
