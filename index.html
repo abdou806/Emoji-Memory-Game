@@ -193,6 +193,13 @@
             justify-content: space-between;
             border: 1px solid var(--gray-200);
             transition: all 0.3s ease;
+            animation: fadeIn 0.5s ease;
+        }
+
+        .task-item:hover {
+            transform: translateX(-4px);
+            border-color: var(--primary);
+            box-shadow: 4px 0 0 var(--primary);
         }
 
         .task-content {
@@ -241,47 +248,44 @@
             background: #D1FAE5;
             color: var(--success);
         }
-    </style>
-</head>
-<body>
-    <div class="container">
-        <header class="header animate__animated animate__fadeIn">
-            <h1>نظام إدارة المهام والمواعيد</h1>
-            <p>نظم مهامك وحقق أهدافك بكفاءة</p>
-        </header>
 
-        <div class="dashboard">
-            <aside class="sidebar animate__animated animate__slideInRight">
-                <form id="taskForm" class="form-group">
-                    <div class="input-group">
-                        <input type="text" class="form-control" id="taskInput" placeholder="عنوان المهمة" required>
-                    </div>
-                    <div class="input-group">
-                        <textarea class="form-control" id="taskDescription" placeholder="وصف المهمة" rows="3"></textarea>
-                    </div>
-                    <div class="input-group">
-                        <input type="datetime-local" class="form-control" id="startDate">
-                    </div>
-                    <div class="input-group">
-                        <input type="datetime-local" class="form-control" id="endDate">
-                    </div>
-                    <select class="form-control" id="priority">
-                        <option value="high">أولوية عالية</option>
-                        <option value="medium">أولوية متوسطة</option>
-                        <option value="low">أولوية منخفضة</option>
-                    </select>
-                    <button type="submit" class="btn btn-primary">
-                        <i class="fas fa-plus"></i>
-                        إضافة مهمة
-                    </button>
-                </form>
-            </aside>
+        .calendar {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            gap: 0.5rem;
+            padding: 1rem;
+            background: white;
+            border-radius: 0.75rem;
+            border: 1px solid var(--gray-200);
+        }
 
-            <main class="main-content">
-                <div class="task-list" id="taskList">
-                </div>
-            </main>
-        </div>
-    </div>
-    <script>
-        const taskForm = document.getElementById('taskForm');
+        .calendar-day {
+            aspect-ratio: 1;
+            padding: 0.5rem;
+            border-radius: 0.5rem;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+        }
+
+        .calendar-day:hover {
+            background: var(--gray-100);
+        }
+
+        .calendar-day.active {
+            background: var(--primary);
+            color: white;
+        }
+
+        .calendar-day.has-tasks::after {
+            content: '';
+            position: absolute;
+            bottom: 0.25rem;
+            width: 0.375rem;
+            height: 0.375rem;
+            background: var(--primary);
+           
