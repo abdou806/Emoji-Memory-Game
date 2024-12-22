@@ -288,24 +288,161 @@
             width: 0.375rem;
             height: 0.375rem;
             background: var(--primary);
+            border-radius: 50%;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        @keyframes slideIn {
+            from { transform: translateX(100%); }
+            to { transform: translateX(0); }
+        }
+
+        @media (max-width: 768px) {
+            .dashboard {
+                grid-template-columns: 1fr;
+            }
+
+            .sidebar {
+                position: static;
+            }
         }
     </style>
 </head>
 <body>
     <div class="container">
-        <header class="header">
+        <header class="header animate__animated animate__fadeIn">
             <h1>نظام إدارة المهام والمواعيد</h1>
+            <p>نظم مهامك وحقق أهدافك بكفاءة</p>
         </header>
+
         <div class="dashboard">
-            <aside class="sidebar">
-                <button class="btn btn-primary">إضافة مهمة جديدة</button>
+            <aside class="sidebar animate__animated animate__slideInRight">
+                <form id="taskForm" class="form-group">
+                    <div class="input-group">
+                        <input type="text" class="form-control" id="taskInput" placeholder="عنوان المهمة" required>
+                    </div>
+                    <div class="input-group">
+                        <textarea class="form-control" id="taskDescription" placeholder="وصف المهمة" rows="3"></textarea>
+                    </div>
+                    <div class="input-group">
+                        <input type="datetime-local" class="form-control" id="startDate">
+                    </div>
+                    <div class="input-group">
+                        <input type="datetime-local" class="form-control" id="endDate">
+                    </div>
+                    <select class="form-control" id="priority">
+                        <option value="high">أولوية عالية</option>
+                        <option value="medium">أولوية متوسطة</option>
+                        <option value="low">أولوية منخفضة</option>
+                    </select>
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-plus"></i>
+                        إضافة مهمة
+                    </button>
+                </form>
             </aside>
+
             <main class="main-content">
-                <section class="task-list">
-                    <!-- قائمة المهام -->
-                </section>
+                <div class="stats-grid animate__animated animate__fadeIn">
+                    <div class="stat-card">
+                        <i class="fas fa-tasks"></i>
+                        <div class="stat-value" id="totalTasks">0</div>
+                        <div class="stat-label">إجمالي المهام</div>
+                    </div>
+                    <div class="stat-card">
+                        <i class="fas fa-check-circle"></i>
+                        <div class="stat-value" id="completedTasks">0</div>
+                        <div class="stat-label">المهام المكتملة</div>
+                    </div>
+                    <div class="stat-card">
+                        <i class="fas fa-clock"></i>
+                        <div class="stat-value" id="pendingTasks">0</div>
+                        <div class="stat-label">المهام المعلقة</div>
+                    </div>
+                </div>
+
+                <div class="card animate__animated animate__fadeIn">
+                    <div id="calendar" class="calendar">
+                        <!-- Calendar will be generated here -->
+                    </div>
+                </div>
+
+                <div class="card animate__animated animate__fadeIn">
+                    <div class="task-list" id="taskList">
+                        <!-- Tasks will be generated here -->
+                    </div>
+                </div>
             </main>
         </div>
     </div>
-</body>
-</html>
+
+    <script>
+        // [Previous JavaScript with the following changes]
+        class TaskManager {
+            constructor() {
+                this.tasks = [];
+                this.setupEventListeners();
+                this.loadTasks();
+                this.updateStats();
+                this.renderCalendar();
+                setInterval(() => this.checkDeadlines(), 60000);
+            }
+
+            // Add nice animations when adding/removing tasks
+            addTask() {
+                // ... previous code ...
+                const taskElement = this.createTaskElement(task);
+                taskElement.classList.add('animate__animated', 'animate__slideInRight');
+                // ... rest of the code ...
+            }
+
+            deleteTask(taskId) {
+                const taskElement = document.querySelector(`[data-task-id="${taskId}"]`);
+                taskElement.classList.add('animate__animated', 'animate__slideOutRight');
+                taskElement.addEventListener('animationend', () => {
+                    this.tasks = this.tasks.filter(task => task.id !== taskId);
+                    this.saveTasks();
+                    this.renderTasks();
+                    this.updateStats();
+                });
+            }
+
+            // Enhanced calendar rendering
+            renderCalendar() {
+                const calendar = document.getElementById('calendar');
+                const now = new Date();
+                const daysInMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0).getDate();
+                const firstDay = new Date(now.getFullYear(), now.getMonth(), 1).getDay();
+
+                calendar.innerHTML = '';
+
+                // Add day labels
+                const days = ['أحد', 'إثنين', 'ثلاثاء', 'أربعاء', 'خميس', 'جمعة', 'سبت'];
+                days.forEach(day => {
+                    const dayLabel = document.createElement('div');
+                    dayLabel.className = 'calendar-day';
+                    dayLabel.textContent = day;
+                    calendar.appendChild(dayLabel);
+                });
+
+                // Add empty cells for days before first day of month
+                for (let i = 0; i < firstDay; i++) {
+                    const emptyDay = document.createElement('div');
+                    emptyDay.className = 'calendar-day';
+                    calendar.appendChild(emptyDay);
+                }
+
+                // Add days
+                for (let i = 1; i <= daysInMonth; i++) {
+                    const dayElement = document.createElement('div');
+                    dayElement.className = 'calendar-day';
+                    
+                    const date = new Date(now.getFullYear(), now.getMonth(), i);
+                    const hasTasks = this.tasks.some(task => {
+                        const taskDate = new Date(task.startDate);
+                        return taskDate.toDateString() === date.toDateString();
+                
