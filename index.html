@@ -26,10 +26,36 @@
             margin-bottom: 2rem;
         }
 
+        .menu {
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+
+        .menu button {
+            display: block;
+            width: 100%;
+            max-width: 200px;
+            margin: 0.5rem auto;
+            padding: 1rem 2rem;
+            border: none;
+            border-radius: 0.5rem;
+            background: linear-gradient(135deg, #4F46E5, #EC4899);
+            color: white;
+            font-weight: bold;
+            cursor: pointer;
+            transition: transform 0.3s;
+        }
+
+        .menu button:hover {
+            transform: translateY(-2px);
+        }
+
         .stats {
             display: flex;
+            justify-content: center;
             gap: 2rem;
             margin-bottom: 2rem;
+            align-items: center;
         }
 
         .stat-card {
@@ -38,6 +64,8 @@
             border-radius: 1rem;
             box-shadow: 0 4px 6px rgba(0,0,0,0.1);
             text-align: center;
+            width: 100%;
+            max-width: 200px;
         }
 
         .game-container {
@@ -134,10 +162,16 @@
 <body>
     <div class="header">
         <h1>لعبة الذاكرة</h1>
-        <p>اعثر على الأزواج المتطابقة</p>
+        <p>اختر مستوى وابدأ اللعب</p>
     </div>
 
-    <div class="stats">
+    <div class="menu" id="menu">
+        <button onclick="startGame(4)">سهل</button>
+        <button onclick="startGame(6)">متوسط</button>
+        <button onclick="startGame(8)">صعب</button>
+    </div>
+
+    <div class="stats" id="stats" style="display: none;">
         <div class="stat-card">
             <div class="stat-value" id="moves">0</div>
             <div class="stat-label">الحركات</div>
@@ -152,189 +186,149 @@
         </div>
     </div>
 
-    <div class="game-container" id="gameBoard"></div>
-    <button class="btn" id="resetBtn">لعبة جديدة</button>
-    <div class="celebration" id="celebration"></div>
+    <div class="game-container" id="gameBoard" style="display: none;"></div>
+    <button class="btn" id="resetBtn" style="display: none;" onclick="resetGame()">لعبة جديدة</button>
 
     <script>
-        class MemoryGame {
-            constructor() {
-                this.cards = [];
-                this.flippedCards = [];
-                this.matchedPairs = 0;
-                this.moves = 0;
-                this.gameStarted = false;
-                this.gameTime = 0;
-                this.timer = null;
+        let gameSize;
+        let timer;
+        let timeElapsed;
+        let moves;
+        let matchedPairs;
+        let flippedCards;
+        let timerRunning = false;
 
-                this.symbols = ['🌟', '🎮', '🎨', '🎭', '🎪', '🎯'];
+        function startGame(size) {
+            gameSize = size;
+            document.getElementById('menu').style.display = 'none';
+            document.getElementById('stats').style.display = 'flex';
+            document.getElementById('gameBoard').style.display = 'grid';
+            document.getElementById('resetBtn').style.display = 'inline-block';
 
-                this.init();
-            }
+            resetGame();
+        }
 
-            init() {
-                this.setupBoard();
-                this.setupEventListeners();
-                this.updateStats();
-            }
+        function resetGame() {
+            stopTimer();
+            timeElapsed = 0;
+            moves = 0;
+            matchedPairs = 0;
+            flippedCards = [];
 
-            setupBoard() {
-                const gameBoard = document.getElementById('gameBoard');
-                const cards = [...this.symbols, ...this.symbols];
-                this.cards = this.shuffle(cards);
+            document.getElementById('moves').textContent = moves;
+            document.getElementById('matches').textContent = matchedPairs;
+            document.getElementById('time').textContent = '0:00';
 
-                gameBoard.innerHTML = '';
-                this.cards.forEach((symbol, index) => {
-                    const card = document.createElement('div');
-                    card.className = 'card';
-                    card.dataset.index = index;
-                    card.innerHTML = `
-                        <div class="card-face card-back"></div>
-                        <div class="card-face card-front">${symbol}</div>
-                    `;
-                    gameBoard.appendChild(card);
-                });
-            }
+            setupBoard();
+        }
 
-            setupEventListeners() {
-                document.getElementById('gameBoard').addEventListener('click', (e) => {
-                    const card = e.target.closest('.card');
-                    if (card && !this.isCardFlipped(card)) {
-                        this.flipCard(card);
-                    }
-                });
-
-                document.getElementById('resetBtn').addEventListener('click', () => {
-                    this.resetGame();
-                });
-            }
-
-            startTimer() {
-                if (!this.gameStarted) {
-                    this.gameStarted = true;
-                    this.timer = setInterval(() => {
-                        this.gameTime++;
-                        this.updateStats();
-                    }, 1000);
-                }
-            }
-
-            stopTimer() {
-                clearInterval(this.timer);
-                this.gameStarted = false;
-            }
-
-            formatTime(seconds) {
-                const minutes = Math.floor(seconds / 60);
-                const remainingSeconds = seconds % 60;
-                return `${minutes}:${remainingSeconds.toString().padStart(2, '0')}`;
-            }
-
-            shuffle(array) {
-                for (let i = array.length - 1; i > 0; i--) {
-                    const j = Math.floor(Math.random() * (i + 1));
-                    [array[i], array[j]] = [array[j], array[i]];
-                }
-                return array;
-            }
-
-            flipCard(card) {
-                if (this.flippedCards.length === 2) return;
-                
-                this.startTimer();
-                card.classList.add('flipped');
-                this.flippedCards.push(card);
-
-                if (this.flippedCards.length === 2) {
-                    this.moves++;
-                    this.updateStats();
-                    this.checkMatch();
-                }
-            }
-
-            isCardFlipped(card) {
-                return card.classList.contains('flipped');
-            }
-
-            checkMatch() {
-                const [card1, card2] = this.flippedCards;
-                const symbol1 = card1.querySelector('.card-front').textContent;
-                const symbol2 = card2.querySelector('.card-front').textContent;
-
-                if (symbol1 === symbol2) {
-                    this.handleMatch(card1, card2);
-                } else {
-                    this.handleMismatch(card1, card2);
-                }
-            }
-
-            handleMatch(card1, card2) {
-                card1.classList.add('matched');
-                card2.classList.add('matched');
-                this.matchedPairs++;
-                this.updateStats();
-                this.flippedCards = [];
-
-                if (this.matchedPairs === this.symbols.length) {
-                    this.celebrate();
-                }
-            }
-
-            handleMismatch(card1, card2) {
-                setTimeout(() => {
-                    card1.classList.remove('flipped');
-                    card2.classList.remove('flipped');
-                    this.flippedCards = [];
+        function startTimer() {
+            if (!timerRunning) {
+                timerRunning = true;
+                timer = setInterval(() => {
+                    timeElapsed++;
+                    const minutes = Math.floor(timeElapsed / 60);
+                    const seconds = timeElapsed % 60;
+                    document.getElementById('time').textContent = `${minutes}:${seconds.toString().padStart(2, '0')}`;
                 }, 1000);
-            }
-
-            updateStats() {
-                document.getElementById('moves').textContent = this.moves;
-                document.getElementById('matches').textContent = this.matchedPairs;
-                document.getElementById('time').textContent = this.formatTime(this.gameTime);
-            }
-
-            celebrate() {
-                this.stopTimer();
-                const celebration = document.getElementById('celebration');
-                celebration.classList.add('active');
-
-                for (let i = 0; i < 50; i++) {
-                    const confetti = document.createElement('div');
-                    confetti.style.cssText = `
-                        position: absolute;
-                        width: 10px;
-                        height: 10px;
-                        background: ${this.getRandomColor()};
-                        left: ${Math.random() * 100}%;
-                        animation: confetti 1s ease-out forwards;
-                        animation-delay: ${Math.random() * 3}s;
-                    `;
-                    celebration.appendChild(confetti);
-                }
-
-                setTimeout(() => {
-                    celebration.classList.remove('active');
-                    celebration.innerHTML = '';
-                }, 5000);
-            }
-
-            getRandomColor() {
-                return `hsl(${Math.random() * 360}, 80%, 60%)`;
-            }
-
-            resetGame() {
-                this.stopTimer();
-                this.flippedCards = [];
-                this.matchedPairs = 0;
-                this.moves = 0;
-                this.gameTime = 0;
-                this.updateStats();
-                this.init();
             }
         }
 
-        new MemoryGame();
+        function stopTimer() {
+            clearInterval(timer);
+            timerRunning = false;
+        }
+
+        function setupBoard() {
+            const symbols = ['🌟', '🎮', '🎨', '🎭', '🎪', '🎯', '🔥', '💎'];
+            const selectedSymbols = symbols.slice(0, (gameSize * gameSize) / 2);
+            const cards = [...selectedSymbols, ...selectedSymbols];
+            const shuffledCards = shuffle(cards);
+
+            const gameBoard = document.getElementById('gameBoard');
+            gameBoard.style.gridTemplateColumns = `repeat(${gameSize}, 1fr)`;
+            gameBoard.innerHTML = '';
+
+            shuffledCards.forEach((symbol, index) => {
+                const card = document.createElement('div');
+                card.className = 'card';
+                card.dataset.index = index;
+                card.innerHTML = `
+                    <div class="card-face card-back"></div>
+                    <div class="card-face card-front">${symbol}</div>
+                `;
+                card.addEventListener('click', () => flipCard(card));
+                gameBoard.appendChild(card);
+            });
+        }
+
+        function shuffle(array) {
+            for (let i = array.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [array[i], array[j]] = [array[j], array[i]];
+            }
+            return array;
+        }
+
+        function flipCard(card) {
+            if (flippedCards.length === 2 || card.classList.contains('flipped') || card.classList.contains('matched')) {
+                return;
+            }
+
+            if (!timerRunning) {
+                startTimer();
+            }
+
+            card.classList.add('flipped');
+            flippedCards.push(card);
+
+            if (flippedCards.length === 2) {
+                moves++;
+                document.getElementById('moves').textContent = moves;
+                checkMatch();
+            }
+        }
+
+        function checkMatch() {
+            const [card1, card2] = flippedCards;
+            const symbol1 = card1.querySelector('.card-front').textContent;
+            const symbol2 = card2.querySelector('.card-front').textContent;
+
+            if (symbol1 === symbol2) {
+                handleMatch(card1, card2);
+            } else {
+                setTimeout(() => {
+                    card1.classList.remove('flipped');
+                    card2.classList.remove('flipped');
+                    flippedCards = [];
+                }, 1000);
+            }
+        }
+
+        function handleMatch(card1, card2) {
+            card1.classList.add('matched');
+            card2.classList.add('matched');
+            matchedPairs++;
+            flippedCards = [];
+
+            document.getElementById('matches').textContent = matchedPairs;
+
+            if (matchedPairs === (gameSize * gameSize) / 2) {
+                endGame();
+            }
+        }
+
+        function endGame() {
+            stopTimer();
+            alert(`تهانينا! لقد أكملت اللعبة في ${timeElapsed} ثانية و ${moves} حركة.`);
+            saveScore(timeElapsed, moves);
+        }
+
+        function saveScore(time, moves) {
+            const scores = JSON.parse(localStorage.getItem('memoryGameScores')) || [];
+            scores.push({ time, moves });
+            localStorage.setItem('memoryGameScores', JSON.stringify(scores));
+        }
     </script>
 </body>
 </html>
