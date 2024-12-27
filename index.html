@@ -3,446 +3,338 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>نظام إدارة المهام والمواعيد</title>
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css" rel="stylesheet">
+    <title>لعبة الذاكرة</title>
     <style>
-        :root {
-            --primary: #4F46E5;
-            --primary-dark: #4338CA;
-            --secondary: #EC4899;
-            --success: #10B981;
-            --warning: #F59E0B;
-            --danger: #EF4444;
-            --gray-50: #F9FAFB;
-            --gray-100: #F3F4F6;
-            --gray-200: #E5E7EB;
-            --gray-300: #D1D5DB;
-            --gray-400: #9CA3AF;
-            --gradient: linear-gradient(135deg, var(--primary), var(--secondary));
-        }
-
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            font-family: Arial, sans-serif;
         }
 
         body {
-            background: var(--gray-50);
             min-height: 100vh;
-            padding: 2rem;
-            display: flex;
-            justify-content: center;
-        }
-
-        .container {
-            max-width: 1200px;
-            width: 100%;
-        }
-
-        .dashboard {
-            display: grid;
-            grid-template-columns: 300px 1fr;
-            gap: 2rem;
-            position: relative;
-        }
-
-        .sidebar {
-            background: white;
-            border-radius: 1rem;
-            padding: 1.5rem;
-            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
-            height: fit-content;
-            position: sticky;
-            top: 2rem;
-        }
-
-        .main-content {
             display: flex;
             flex-direction: column;
-            gap: 2rem;
-        }
-
-        .card {
-            background: white;
-            border-radius: 1rem;
-            padding: 1.5rem;
-            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
-            transition: all 0.3s ease;
-        }
-
-        .card:hover {
-            transform: translateY(-4px);
-            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+            align-items: center;
+            background: #f0f2f5;
+            padding: 2rem;
         }
 
         .header {
-            background: var(--gradient);
-            color: white;
-            padding: 2rem;
-            border-radius: 1rem;
+            text-align: center;
             margin-bottom: 2rem;
         }
 
-        .stats-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 1rem;
+        .stats {
+            display: flex;
+            gap: 2rem;
+            margin-bottom: 2rem;
         }
 
         .stat-card {
             background: white;
-            padding: 1.5rem;
-            border-radius: 0.75rem;
+            padding: 1rem 2rem;
+            border-radius: 1rem;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
             text-align: center;
-            position: relative;
-            overflow: hidden;
-            border: 1px solid var(--gray-200);
-            transition: transform 0.3s ease;
         }
 
-        .stat-card:hover {
-            transform: scale(1.05);
-        }
-
-        .stat-card::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 4px;
-            background: var(--gradient);
-        }
-
-        .stat-value {
-            font-size: 2rem;
-            font-weight: 700;
-            color: var(--primary);
-            margin: 0.5rem 0;
-        }
-
-        .stat-label {
-            color: var(--gray-400);
-            font-size: 0.875rem;
-        }
-
-        .form-group {
-            display: flex;
-            flex-direction: column;
+        .game-container {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
             gap: 1rem;
-            margin-bottom: 1.5rem;
-        }
-
-        .input-group {
-            position: relative;
-        }
-
-        .form-control {
+            max-width: 800px;
             width: 100%;
-            padding: 0.75rem;
-            border: 1px solid var(--gray-200);
-            border-radius: 0.5rem;
-            font-size: 1rem;
-            transition: all 0.3s ease;
+            perspective: 1000px;
         }
 
-        .form-control:focus {
-            outline: none;
-            border-color: var(--primary);
-            box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1);
+        .card {
+            aspect-ratio: 1;
+            position: relative;
+            transform-style: preserve-3d;
+            transition: transform 0.6s;
+            cursor: pointer;
+        }
+
+        .card.flipped {
+            transform: rotateY(180deg);
+        }
+
+        .card.matched {
+            transform: rotateY(180deg) scale(0.95);
+        }
+
+        .card-face {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            backface-visibility: hidden;
+            border-radius: 10px;
+            overflow: hidden;
+        }
+
+        .card-back {
+            background: linear-gradient(135deg, #4F46E5, #EC4899);
+        }
+
+        .card-front {
+            transform: rotateY(180deg);
+            background: white;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 2rem;
+            font-weight: bold;
         }
 
         .btn {
+            margin-top: 2rem;
             padding: 0.75rem 1.5rem;
             border: none;
             border-radius: 0.5rem;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            gap: 0.5rem;
-        }
-
-        .btn-primary {
-            background: var(--gradient);
+            background: linear-gradient(135deg, #4F46E5, #EC4899);
             color: white;
+            font-weight: bold;
+            cursor: pointer;
+            transition: transform 0.3s;
         }
 
-        .btn-primary:hover {
+        .btn:hover {
             transform: translateY(-2px);
-            box-shadow: 0 4px 6px -1px rgba(79, 70, 229, 0.2);
         }
 
-        .task-list {
-            display: flex;
-            flex-direction: column;
-            gap: 1rem;
+        .celebration {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 100;
+            display: none;
         }
 
-        .task-item {
-            background: white;
-            border-radius: 0.75rem;
-            padding: 1rem;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            border: 1px solid var(--gray-200);
-            transition: all 0.3s ease;
-            animation: fadeIn 0.5s ease;
+        .celebration.active {
+            display: block;
         }
 
-        .task-item:hover {
-            transform: translateX(-4px);
-            border-color: var(--primary);
-            box-shadow: 4px 0 0 var(--primary);
+        @keyframes confetti {
+            0% { transform: translateY(0) rotateZ(0); }
+            100% { transform: translateY(100vh) rotateZ(360deg); }
         }
 
-        .task-content {
-            display: flex;
-            align-items: center;
-            gap: 1rem;
-            flex: 1;
-        }
-
-        .task-details {
-            flex: 1;
-        }
-
-        .task-title {
-            font-weight: 600;
-            color: var(--gray-900);
-            margin-bottom: 0.25rem;
-        }
-
-        .task-meta {
-            display: flex;
-            align-items: center;
-            gap: 1rem;
-            color: var(--gray-400);
-            font-size: 0.875rem;
-        }
-
-        .priority-badge {
-            padding: 0.25rem 0.75rem;
-            border-radius: 1rem;
-            font-size: 0.75rem;
-            font-weight: 600;
-        }
-
-        .priority-high {
-            background: #FEE2E2;
-            color: var(--danger);
-        }
-
-        .priority-medium {
-            background: #FEF3C7;
-            color: var(--warning);
-        }
-
-        .priority-low {
-            background: #D1FAE5;
-            color: var(--success);
-        }
-
-        .calendar {
-            display: grid;
-            grid-template-columns: repeat(7, 1fr);
-            gap: 0.5rem;
-            padding: 1rem;
-            background: white;
-            border-radius: 0.75rem;
-            border: 1px solid var(--gray-200);
-        }
-
-        .calendar-day {
-            aspect-ratio: 1;
-            padding: 0.5rem;
-            border-radius: 0.5rem;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            position: relative;
-        }
-
-        .calendar-day:hover {
-            background: var(--gray-100);
-        }
-
-        .calendar-day.active {
-            background: var(--primary);
-            color: white;
-        }
-
-        .calendar-day.has-tasks::after {
-            content: '';
-            position: absolute;
-            bottom: 0.25rem;
-            width: 0.375rem;
-            height: 0.375rem;
-            background: var(--primary);
-            border-radius: 50%;
-        }
-
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(10px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-
-        @keyframes slideIn {
-            from { transform: translateX(100%); }
-            to { transform: translateX(0); }
-        }
-
-        @media (max-width: 768px) {
-            .dashboard {
-                grid-template-columns: 1fr;
-            }
-
-            .sidebar {
-                position: static;
+        @media (max-width: 600px) {
+            .game-container {
+                grid-template-columns: repeat(3, 1fr);
             }
         }
     </style>
 </head>
 <body>
-    <div class="container">
-        <header class="header animate__animated animate__fadeIn">
-            <h1>نظام إدارة المهام والمواعيد</h1>
-            <p>نظم مهامك وحقق أهدافك بكفاءة</p>
-        </header>
+    <div class="header">
+        <h1>لعبة الذاكرة</h1>
+        <p>اعثر على الأزواج المتطابقة</p>
+    </div>
 
-        <div class="dashboard">
-            <aside class="sidebar animate__animated animate__slideInRight">
-                <form id="taskForm" class="form-group">
-                    <div class="input-group">
-                        <input type="text" class="form-control" id="taskInput" placeholder="عنوان المهمة" required>
-                    </div>
-                    <div class="input-group">
-                        <textarea class="form-control" id="taskDescription" placeholder="وصف المهمة" rows="3"></textarea>
-                    </div>
-                    <div class="input-group">
-                        <input type="datetime-local" class="form-control" id="startDate">
-                    </div>
-                    <div class="input-group">
-                        <input type="datetime-local" class="form-control" id="endDate">
-                    </div>
-                    <select class="form-control" id="priority">
-                        <option value="high">أولوية عالية</option>
-                        <option value="medium">أولوية متوسطة</option>
-                        <option value="low">أولوية منخفضة</option>
-                    </select>
-                    <button type="submit" class="btn btn-primary">
-                        <i class="fas fa-plus"></i>
-                        إضافة مهمة
-                    </button>
-                </form>
-            </aside>
-
-            <main class="main-content">
-                <div class="stats-grid animate__animated animate__fadeIn">
-                    <div class="stat-card">
-                        <i class="fas fa-tasks"></i>
-                        <div class="stat-value" id="totalTasks">0</div>
-                        <div class="stat-label">إجمالي المهام</div>
-                    </div>
-                    <div class="stat-card">
-                        <i class="fas fa-check-circle"></i>
-                        <div class="stat-value" id="completedTasks">0</div>
-                        <div class="stat-label">المهام المكتملة</div>
-                    </div>
-                    <div class="stat-card">
-                        <i class="fas fa-clock"></i>
-                        <div class="stat-value" id="pendingTasks">0</div>
-                        <div class="stat-label">المهام المعلقة</div>
-                    </div>
-                </div>
-
-                <div class="card animate__animated animate__fadeIn">
-                    <div id="calendar" class="calendar">
-                        <!-- Calendar will be generated here -->
-                    </div>
-                </div>
-
-                <div class="card animate__animated animate__fadeIn">
-                    <div class="task-list" id="taskList">
-                        <!-- Tasks will be generated here -->
-                    </div>
-                </div>
-            </main>
+    <div class="stats">
+        <div class="stat-card">
+            <div class="stat-value" id="moves">0</div>
+            <div class="stat-label">الحركات</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-value" id="matches">0</div>
+            <div class="stat-label">التطابقات</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-value" id="time">0:00</div>
+            <div class="stat-label">الوقت</div>
         </div>
     </div>
 
+    <div class="game-container" id="gameBoard"></div>
+    <button class="btn" id="resetBtn">لعبة جديدة</button>
+    <div class="celebration" id="celebration"></div>
+
     <script>
-        // [Previous JavaScript with the following changes]
-        class TaskManager {
+        class MemoryGame {
             constructor() {
-                this.tasks = [];
+                this.cards = [];
+                this.flippedCards = [];
+                this.matchedPairs = 0;
+                this.moves = 0;
+                this.gameStarted = false;
+                this.gameTime = 0;
+                this.timer = null;
+
+                this.symbols = ['🌟', '🎮', '🎨', '🎭', '🎪', '🎯'];
+
+                this.init();
+            }
+
+            init() {
+                this.setupBoard();
                 this.setupEventListeners();
-                this.loadTasks();
                 this.updateStats();
-                this.renderCalendar();
-                setInterval(() => this.checkDeadlines(), 60000);
             }
 
-            // Add nice animations when adding/removing tasks
-            addTask() {
-                // ... previous code ...
-                const taskElement = this.createTaskElement(task);
-                taskElement.classList.add('animate__animated', 'animate__slideInRight');
-                // ... rest of the code ...
+            setupBoard() {
+                const gameBoard = document.getElementById('gameBoard');
+                const cards = [...this.symbols, ...this.symbols];
+                this.cards = this.shuffle(cards);
+
+                gameBoard.innerHTML = '';
+                this.cards.forEach((symbol, index) => {
+                    const card = document.createElement('div');
+                    card.className = 'card';
+                    card.dataset.index = index;
+                    card.innerHTML = `
+                        <div class="card-face card-back"></div>
+                        <div class="card-face card-front">${symbol}</div>
+                    `;
+                    gameBoard.appendChild(card);
+                });
             }
 
-            deleteTask(taskId) {
-                const taskElement = document.querySelector(`[data-task-id="${taskId}"]`);
-                taskElement.classList.add('animate__animated', 'animate__slideOutRight');
-                taskElement.addEventListener('animationend', () => {
-                    this.tasks = this.tasks.filter(task => task.id !== taskId);
-                    this.saveTasks();
-                    this.renderTasks();
+            setupEventListeners() {
+                document.getElementById('gameBoard').addEventListener('click', (e) => {
+                    const card = e.target.closest('.card');
+                    if (card && !this.isCardFlipped(card)) {
+                        this.flipCard(card);
+                    }
+                });
+
+                document.getElementById('resetBtn').addEventListener('click', () => {
+                    this.resetGame();
+                });
+            }
+
+            startTimer() {
+                if (!this.gameStarted) {
+                    this.gameStarted = true;
+                    this.timer = setInterval(() => {
+                        this.gameTime++;
+                        this.updateStats();
+                    }, 1000);
+                }
+            }
+
+            stopTimer() {
+                clearInterval(this.timer);
+                this.gameStarted = false;
+            }
+
+            formatTime(seconds) {
+                const minutes = Math.floor(seconds / 60);
+                const remainingSeconds = seconds % 60;
+                return `${minutes}:${remainingSeconds.toString().padStart(2, '0')}`;
+            }
+
+            shuffle(array) {
+                for (let i = array.length - 1; i > 0; i--) {
+                    const j = Math.floor(Math.random() * (i + 1));
+                    [array[i], array[j]] = [array[j], array[i]];
+                }
+                return array;
+            }
+
+            flipCard(card) {
+                if (this.flippedCards.length === 2) return;
+                
+                this.startTimer();
+                card.classList.add('flipped');
+                this.flippedCards.push(card);
+
+                if (this.flippedCards.length === 2) {
+                    this.moves++;
                     this.updateStats();
-                });
+                    this.checkMatch();
+                }
             }
 
-            // Enhanced calendar rendering
-            renderCalendar() {
-                const calendar = document.getElementById('calendar');
-                const now = new Date();
-                const daysInMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0).getDate();
-                const firstDay = new Date(now.getFullYear(), now.getMonth(), 1).getDay();
+            isCardFlipped(card) {
+                return card.classList.contains('flipped');
+            }
 
-                calendar.innerHTML = '';
+            checkMatch() {
+                const [card1, card2] = this.flippedCards;
+                const symbol1 = card1.querySelector('.card-front').textContent;
+                const symbol2 = card2.querySelector('.card-front').textContent;
 
-                // Add day labels
-                const days = ['أحد', 'إثنين', 'ثلاثاء', 'أربعاء', 'خميس', 'جمعة', 'سبت'];
-                days.forEach(day => {
-                    const dayLabel = document.createElement('div');
-                    dayLabel.className = 'calendar-day';
-                    dayLabel.textContent = day;
-                    calendar.appendChild(dayLabel);
-                });
+                if (symbol1 === symbol2) {
+                    this.handleMatch(card1, card2);
+                } else {
+                    this.handleMismatch(card1, card2);
+                }
+            }
 
-                // Add empty cells for days before first day of month
-                for (let i = 0; i < firstDay; i++) {
-                    const emptyDay = document.createElement('div');
-                    emptyDay.className = 'calendar-day';
-                    calendar.appendChild(emptyDay);
+            handleMatch(card1, card2) {
+                card1.classList.add('matched');
+                card2.classList.add('matched');
+                this.matchedPairs++;
+                this.updateStats();
+                this.flippedCards = [];
+
+                if (this.matchedPairs === this.symbols.length) {
+                    this.celebrate();
+                }
+            }
+
+            handleMismatch(card1, card2) {
+                setTimeout(() => {
+                    card1.classList.remove('flipped');
+                    card2.classList.remove('flipped');
+                    this.flippedCards = [];
+                }, 1000);
+            }
+
+            updateStats() {
+                document.getElementById('moves').textContent = this.moves;
+                document.getElementById('matches').textContent = this.matchedPairs;
+                document.getElementById('time').textContent = this.formatTime(this.gameTime);
+            }
+
+            celebrate() {
+                this.stopTimer();
+                const celebration = document.getElementById('celebration');
+                celebration.classList.add('active');
+
+                for (let i = 0; i < 50; i++) {
+                    const confetti = document.createElement('div');
+                    confetti.style.cssText = `
+                        position: absolute;
+                        width: 10px;
+                        height: 10px;
+                        background: ${this.getRandomColor()};
+                        left: ${Math.random() * 100}%;
+                        animation: confetti 1s ease-out forwards;
+                        animation-delay: ${Math.random() * 3}s;
+                    `;
+                    celebration.appendChild(confetti);
                 }
 
-                // Add days
-                for (let i = 1; i <= daysInMonth; i++) {
-                    const dayElement = document.createElement('div');
-                    dayElement.className = 'calendar-day';
-                    
-                    const date = new Date(now.getFullYear(), now.getMonth(), i);
-                    const hasTasks = this.tasks.some(task => {
-                        const taskDate = new Date(task.startDate);
-                        return taskDate.toDateString() === date.toDateString();
-                
+                setTimeout(() => {
+                    celebration.classList.remove('active');
+                    celebration.innerHTML = '';
+                }, 5000);
+            }
+
+            getRandomColor() {
+                return `hsl(${Math.random() * 360}, 80%, 60%)`;
+            }
+
+            resetGame() {
+                this.stopTimer();
+                this.flippedCards = [];
+                this.matchedPairs = 0;
+                this.moves = 0;
+                this.gameTime = 0;
+                this.updateStats();
+                this.init();
+            }
+        }
+
+        new MemoryGame();
+    </script>
+</body>
+</html>
